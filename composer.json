@@ -1,0 +1,56 @@
+{
+    "name": "mellivora/mellivora-multiprocess",
+    "type": "library",
+    "description": "Multi process by swoole extension, like python multiprocessing!",
+    "keywords": [
+        "mellivora",
+        "framework",
+        "asynchronous",
+        "async",
+        "locker",
+        "queue",
+        "pipe",
+        "process",
+        "multiprocess",
+        "multiprocessing",
+        "swoole",
+        "pcntl",
+        "signal"
+    ],
+    "homepage": "https://github.com/zhouyl/mellivora-multiprocess",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "zhouyl",
+            "email": "81438567@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.0",
+        "ext-swoole": ">=1.8"
+    },
+    "require-dev": {
+        "monolog/monolog": "^1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mellivora\\MultiProcess\\": "src"
+        },
+        "files": []
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Mellivora\\MultiProcess\\Tests\\": "tests"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true,
+        "secure-http": false
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit;",
+        "phpcs": "./vendor/bin/php-cs-fixer fix -v --diff --dry-run;",
+        "phpcs-fix": "./vendor/bin/php-cs-fixer fix -v;"
+    }
+}
