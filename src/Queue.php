@@ -2,18 +2,18 @@
 
 namespace Mellivora\MultiProcess;
 
-class Locker
+class Queue
 {
     /**
      * @example
-     *      Locker::mutex();
-     *      Locker::spin();
-     *      ...
+     *      Queue::fifo();
+     *      Queue::lifo();
+     *      Queue::priority();
      *
      * @param mixed $name
      * @param mixed $arguments
      *
-     * @return \Mellivora\MultiProcess\Locker\LockerInterface
+     * @return \Mellivora\MultiProcess\Queue\QueueInterface
      */
     public static function __callStatic($name, $arguments)
     {

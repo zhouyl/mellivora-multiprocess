@@ -24,13 +24,13 @@
     - `Mellivora\MultiProcess\Pool` - 进程池
     - `Mellivora\MultiProcess\Process` - 进程类
     - `Mellivora\MultiProcess\Locker` - 各种锁，基于 swoole_lock
-        - `Mellivora\MultiProcess\Locker\AbstractLocker` - 锁抽象类
+        - `Mellivora\MultiProcess\Locker\LockerInterface` - 锁抽象类
         - `Mellivora\MultiProcess\Locker\FileLocker` - 文件锁
         - `Mellivora\MultiProcess\Locker\RWLocker` - 读写锁 (允许多个读，一个写，其它等待的进程挂起)
-        - `Mellivora\MultiProcess\Locker\SemLocker` - 信号量 (特殊变量，原子操作，加锁时值+1，解锁时值-1，等待的进程挂起)
+        - `Mellivora\MultiProcess\Locker\SemaphoreLocker` - 信号量 (特殊变量，原子操作，加锁时值+1，解锁时值-1，等待的进程挂起)
         - `Mellivora\MultiProcess\Locker\MutexLocker` - 互斥锁 (排队等待加锁，适用于锁等待时间长的场景，但上下文切换会消耗cpu性能)
         - `Mellivora\MultiProcess\Locker\SpinLocker` - 自旋锁 (不断尝试加锁，适用于锁等待时间短的场景，高并发或锁等待时间长时，CPU浪费较大)
-        - `Mellivora\MultiProcess\Locker\RLocker` - 可重入锁，当拥有者相同时，可执行多次 acquire
+        - `Mellivora\MultiProcess\Locker\ReentrantLocker` - 可重入锁，当拥有者相同时，可执行多次 acquire
         - `Mellivora\MultiProcess\Locker\ConditionLocker` - 条件锁
         - `Mellivora\MultiProcess\Locker\LockFailException` - 加锁失败异常
     - `Mellivora\MultiProcess\Queue` - 各种队列类，基于 swoole_channel
