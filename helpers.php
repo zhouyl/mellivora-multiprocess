@@ -1,9 +1,6 @@
 <?php
 
-defined('OS_UNIX') && define('OS_UNIX', 1);
-defined('OS_LINUX') && define('OS_LINUX', 2);
-defined('OS_DARWIN') && define('OS_DARWIN', 4);
-defined('OS_WINDOWS') && define('OS_WINDOWS', 8);
+require_once __DIR__ . '/defined.php';
 
 if (! function_exists('os')) {
     /**
@@ -57,13 +54,13 @@ if (! function_exists('is_linux')) {
     }
 }
 
-if (! function_exists('is_osx')) {
+if (! function_exists('is_darwin')) {
     /**
      * 判断当前是否 os x 操作系统
      *
      * @return bool
      */
-    function is_osx()
+    function is_darwin()
     {
         return os() === OS_DARWIN;
     }
@@ -84,6 +81,8 @@ if (! function_exists('is_unix')) {
 if (! function_exists('is_cli')) {
     /**
      * 判断当前是否运行在 cli 命令行模式下
+     *
+     * @return bool
      */
     function is_cli()
     {
@@ -95,7 +94,7 @@ if (! function_exists('pid')) {
     /**
      * 获取当前|指定进程的 pid
      *
-     * @param null|swoole_process $worker
+     * @param null|swoole_process $worker 可以获取当前进程或指定 swoole_process 进程的pid
      *
      * @return int
      */
@@ -114,6 +113,56 @@ if (! function_exists('pid')) {
         }
 
         trigger_error('Unable to get process pid', E_USER_ERROR);
+    }
+}
+
+if (! function_exists('signal_listen')) {
+    /**
+     * 新增信号管理器
+     *
+     * @param int|int[] $signals 可以是一个信号或者一个信号数组
+     * @param callable  $handle  信号响应回调函数
+     *
+     * @return bool
+     */
+    function signal_listen($signals, callable $handle)
+    {
+        is_array($signals) || $signals = [$signals];
+
+        foreach ($signals as $signo) {
+            swoole_process::signal($signo, $handle);
+        }
+
+        return true;
+    }
+}
+
+if (! function_exists('signal_kill')) {
+    /**
+     * 向进程发送 kill 信号
+     *
+     * @param int      $signo unix 系统信号
+     * @param null|int $pid   如果不指定进程 pid，则默认为当前进程
+     */
+    function signal_kill($signo, $pid=null)
+    {
+        $pid || $pid = pid();
+
+        return swoole_process::kill($pid, $signo);
+    }
+}
+
+if (! function_exists('signal_wait')) {
+    /**
+     * 执行进程回收
+     *
+     * @param bool $blocking 是否阻塞等待
+     *
+     * @return array
+     */
+    function signal_wait($blocking = true)
+    {
+        return swoole_process::wait($blocking);
     }
 }
 
