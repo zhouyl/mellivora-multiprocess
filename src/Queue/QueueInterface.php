@@ -34,14 +34,14 @@ interface QueueInterface
      *
      * @return bool
      */
-    public function empty();
+    public function isEmpty();
 
     /**
      * 队列已满，当未指定 $maxsize 时，永远为 false
      *
      * @return bool
      */
-    public function full();
+    public function isFull();
 
     /**
      * 返回队列最大容量，当 $maxsize!=null 时，重新调整队列大小

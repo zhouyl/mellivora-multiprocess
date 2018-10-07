@@ -21,14 +21,14 @@ class FifoQueue implements QueueInterface
     /**
      * {@inheritdoc}
      */
-    public function empty()
+    public function isEmpty()
     {
     }
 
     /**
      * {@inheritdoc}
      */
-    public function full()
+    public function isFull()
     {
     }
 
