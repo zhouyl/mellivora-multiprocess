@@ -2,6 +2,9 @@
 
 namespace Mellivora\MultiProcess\Queue;
 
+/**
+ * 先进先出队列
+ */
 class FifoQueue implements QueueInterface
 {
     /**

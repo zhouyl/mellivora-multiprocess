@@ -2,6 +2,9 @@
 
 namespace Mellivora\MultiProcess\Queue;
 
+/**
+ * 队列类接口
+ */
 interface QueueInterface
 {
     /**
@@ -23,7 +26,7 @@ interface QueueInterface
      * @param mixed $blocking 当队列已满，如果值为 true 则阻塞等待，否则抛出异常
      * @param mixed $timeout  单位 microtime
      *
-     * @throws QueueFullException
+     * @throws \Mellivora\MultiProcess\Queue\QueueFullException
      *
      * @return bool
      */

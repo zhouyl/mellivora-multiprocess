@@ -21,6 +21,8 @@
 - `Mellivora\MultiProcess`
     - `Mellivora\MultiProcess\Pool` - 进程池
     - `Mellivora\MultiProcess\Process` - 进程类
+    - `Mellivora\MultiProcess\Shared` - 数据共享，基于 swoole_table
+    - `Mellivora\MultiProcess\Pipe` - 管道通信
     - `Mellivora\MultiProcess\Locker` - 各种锁，基于 swoole_lock
         - `Mellivora\MultiProcess\Locker\LockerInterface` - 锁抽象类
         - `Mellivora\MultiProcess\Locker\FileLocker` - 文件锁
@@ -30,13 +32,17 @@
         - `Mellivora\MultiProcess\Locker\SpinLocker` - 自旋锁 (不断尝试加锁，适用于锁等待时间短的场景，高并发或锁等待时间长时，CPU浪费较大)
         - `Mellivora\MultiProcess\Locker\ReentrantLocker` - 可重入锁，当拥有者相同时，可执行多次 acquire
         - `Mellivora\MultiProcess\Locker\ConditionLocker` - 条件锁
-        - `Mellivora\MultiProcess\Locker\LockFailException` - 加锁失败异常
     - `Mellivora\MultiProcess\Queue` - 各种队列类，基于 swoole_channel
-        - `Mellivora\MultiProcess\Queue\AbstractQueue` - 队列抽象类
+        - `Mellivora\MultiProcess\Queue\QueueInterface` - 队列接口
         - `Mellivora\MultiProcess\Queue\FifoQueue` - 先进先出队列
         - `Mellivora\MultiProcess\Queue\LifoQueue` - 后进先出队列
         - `Mellivora\MultiProcess\Queue\PriorityQueue` - 优先级队列
-        - `Mellivora\MultiProcess\Queue\EmptyExcption` - 队列空异常
-        - `Mellivora\MultiProcess\Queue\FullExcption` - 队列满异常
-    - `Mellivora\MultiProcess\Shared` - 数据共享，基于 swoole_table
-    - `Mellivora\MultiProcess\Pipe` - 管道通信
+
+## 异常类 Exception
+
+- `Mellivora\MultiProcess\Exception` - 异常基类
+    - `Mellivora\MultiProcess\Locker\LockerException` - 锁异常
+        - `Mellivora\MultiProcess\Locker\LockFailException` - 加锁失败
+    - `Mellivora\MultiProcess\Queue\QueueException` - 队列异常
+        - `Mellivora\MultiProcess\Queue\QueueEmptyException` - 队列空异常
+        - `Mellivora\MultiProcess\Queue\QueueFullException` - 队列满异常

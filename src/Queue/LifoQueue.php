@@ -2,6 +2,9 @@
 
 namespace Mellivora\MultiProcess\Queue;
 
+/**
+ * 后进先出队列
+ */
 class LifoQueue implements QueueInterface
 {
     /**

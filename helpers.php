@@ -198,3 +198,22 @@ if (! function_exists('await')) {
         return $callback($success) ? $callback : $success;
     }
 }
+
+if (! function_exists('defer')) {
+    /**
+     * @param callable $callback
+     */
+    function defer(callable $callback)
+    {
+    }
+}
+
+if (! function_exists('delay')) {
+    /**
+     * @param callable $callback
+     * @param int      $delay
+     */
+    function delay(callable $callback, $delay=0)
+    {
+    }
+}

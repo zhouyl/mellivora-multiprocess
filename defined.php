@@ -6,7 +6,7 @@ defined('OS_LINUX') || define('OS_LINUX', 2);
 defined('OS_DARWIN') || define('OS_DARWIN', 4);
 defined('OS_WINDOWS') || define('OS_WINDOWS', 8);
 
-// linux signal
+// unix process signal
 defined('SIGHUP') || define('SIGHUP', 1);
 defined('SIGINT') || define('SIGINT', 2);
 defined('SIGQUIT') || define('SIGQUIT', 3);

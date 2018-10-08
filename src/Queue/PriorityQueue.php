@@ -2,6 +2,9 @@
 
 namespace Mellivora\MultiProcess\Queue;
 
+/**
+ * 优先级队列
+ */
 class PriorityQueue implements QueueInterface
 {
     /**
