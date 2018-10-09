@@ -57,7 +57,7 @@ class Task
      *
      * @var float
      */
-    protected $done;
+    protected $end;
 
     /**
      * 构造方法
@@ -80,29 +80,29 @@ class Task
      *
      * @return \Mellivora\MultiProcess\Task
      */
-    public function run(Process $process)
+    public function start(Process $process)
     {
         $this->process      = $process;
         $this->start        = microtime(true);
         $this->result       = null;
         $this->exception    = null;
-        $this->done         = 0.0;
+        $this->end          = 0.0;
 
         try {
-            $this->fire('start', [$process]);
+            $this->fire('start', $process);
 
             // 绑定 $process 到回调函数中
             $closure = Closure::fromCallable($this->target)->bindTo($process);
 
             // 获得运行结果
             $this->result = call_user_func($closure, $process);
-            $this->fire('success', [$process, $this->result]);
+            $this->fire('success', $process, $this->result);
         } catch (\Exception $e) {
             $this->exception = $e;
-            $this->fire('error', [$process, $e]);
+            $this->fire('error', $process, $e);
         } finally {
-            $this->done = microtime(true);
-            $this->fire('done', [$process, $this->result]);
+            $this->end = microtime(true);
+            $this->fire('done', $process, $this->result);
         }
 
         return $this;
@@ -128,7 +128,7 @@ class Task
      */
     public function running()
     {
-        return $this->start && ! $this->done;
+        return $this->start && ! $this->end;
     }
 
     /**
@@ -138,7 +138,7 @@ class Task
      */
     public function done()
     {
-        return $this->start && $this->done;
+        return $this->start && $this->end;
     }
 
     /**

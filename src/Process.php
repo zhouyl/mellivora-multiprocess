@@ -36,13 +36,6 @@ class Process
     protected $process;
 
     /**
-     * 进程 pid
-     *
-     * @var int
-     */
-    protected $pid = 0;
-
-    /**
      * 任务运行开始时间
      *
      * @var float
@@ -54,7 +47,7 @@ class Process
      *
      * @var float
      */
-    protected $exit;
+    protected $end;
 
     /**
      * 构造方法
@@ -76,13 +69,13 @@ class Process
     {
         return new swoole_process(function ($process) {
             $this->start = microtime(true);
-            $this->exit = null;
-            $this->fire('start', [$process]);
+            $this->end = null;
+            $this->fire('start', $process);
 
-            $this->task->run($this);
+            $this->task->start($this);
 
-            $this->exit = microtime(true);
-            $this->fire('exit', [$process]);
+            $this->end = microtime(true);
+            $this->fire('exit', $process);
             $process->exit();
         });
     }
@@ -100,23 +93,36 @@ class Process
             throw new Process\ProcessException('The process is already running');
         }
 
-        $this->pid = $this->process->start();
+        $this->process->start();
 
         return $this;
     }
 
     /**
-     * 让运行中的进程退出
+     * 获取当前进程 pid
      *
      * @return int
      */
-    public function exit()
+    public function pid()
     {
-        if ($this->exited) {
-            return 0;
+        return $this->process->pid;
+    }
+
+    /**
+     * 发送 unix 信号以结束进程
+     *
+     * @param int $signo
+     *
+     * @return \Mellivora\MultiProcess\Process
+     */
+    public function kill($signo=SIGTERM)
+    {
+        if ($this->running() && signal_kill($signo, $this->pid())) {
+            $this->end = microtime(true);
+            $this->fire('exit', $this->process);
         }
 
-        return $this->process->exit();
+        return $this;
     }
 
     /**
@@ -126,7 +132,7 @@ class Process
      */
     public function running()
     {
-        return $this->start && ! $this->exit;
+        return $this->pid() && signal_kill(0, $this->pid());
     }
 
     /**
@@ -134,9 +140,9 @@ class Process
      *
      * @return bool
      */
-    public function exited()
+    public function done()
     {
-        return $this->start && $this->exit;
+        return $this->pid() && $this->end;
     }
 
     /**

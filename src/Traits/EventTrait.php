@@ -45,11 +45,11 @@ trait EventTrait
      * 触发事件
      *
      * @param string|string[] $event
-     * @param array           $args
+     * @param mixed           ...$args
      *
      * @return $this
      */
-    public function fire($event, array $args=[])
+    public function fire($event, ...$args)
     {
         $events = isset($this->events[$event]) ? $this->events[$event] : [];
 
