@@ -2,21 +2,28 @@
 
 namespace Mellivora\MultiProcess;
 
+use Closure;
+
 class Task
 {
     /**
      * 快速创建一个任务
      *
-     * @param callable $func
+     * @param callable $target
      *
      * @return \Mellivora\MultiProcess\Task
      */
-    public static function create(callable $func)
+    public static function create(callable $target)
     {
-        return new self($func);
+        if ($target instanceof self) {
+            return $target;
+        }
+
+        return new self($target);
     }
 
     use Traits\EventTrait;
+    use Traits\PropertyAccessTrait;
 
     /**
      * 任务工作内容
@@ -50,7 +57,7 @@ class Task
      *
      * @var float
      */
-    protected $end;
+    protected $done;
 
     /**
      * 构造方法
@@ -70,34 +77,32 @@ class Task
      * 运行任务
      *
      * @param \Mellivora\MultiProcess\Process $process
-     * @param array                           $args
      *
      * @return \Mellivora\MultiProcess\Task
      */
-    public function run(Process $process, array $args=[])
+    public function run(Process $process)
     {
-        $this->process   = $process;
-        $this->start     = microtime(true);
-        $this->result    = null;
-        $this->exception = null;
-        $this->end       = null;
+        $this->process      = $process;
+        $this->start        = microtime(true);
+        $this->result       = null;
+        $this->exception    = null;
+        $this->done         = 0.0;
 
         try {
-            $this->fire('start', $args);
+            $this->fire('start', [$process]);
 
             // 绑定 $process 到回调函数中
             $closure = Closure::fromCallable($this->target)->bindTo($process);
 
             // 获得运行结果
-            $this->result = call_user_func_array($closure, $args);
-            $this->fire('success', [$this->result]);
+            $this->result = call_user_func($closure, $process);
+            $this->fire('success', [$process, $this->result]);
         } catch (\Exception $e) {
             $this->exception = $e;
-            $this->fire('error', [$e]);
+            $this->fire('error', [$process, $e]);
         } finally {
-            $this->end = microtime(true);
-            $this->fire('done', [$this->result]);
-            $this->process->exit();
+            $this->done = microtime(true);
+            $this->fire('done', [$process, $this->result]);
         }
 
         return $this;
@@ -123,7 +128,7 @@ class Task
      */
     public function running()
     {
-        return $this->process && $this->start && ! $this->end;
+        return $this->start && ! $this->done;
     }
 
     /**
@@ -133,7 +138,7 @@ class Task
      */
     public function done()
     {
-        return $this->process && $this->start && $this->end;
+        return $this->start && $this->done;
     }
 
     /**
@@ -167,25 +172,50 @@ class Task
     }
 
     /**
-     * 允许通过魔术方法访问 Task 属性
-     * [target|process|result|exception|start|end]
+     * 事件监听 - 任务开始执行
      *
-     * @param string $property
+     * @param callable $callback
      *
-     * @throws \Mellivora\MultiProcess\Task\TaskException
-     *
-     * @return mixed
+     * @return \Mellivora\MultiProcess\Task
      */
-    public function __get($property)
+    public function onStart(callable $callback)
     {
-        if (! property_exists($this, $property)) {
-            throw new Task\TaskException(sprintf(
-                'Invalid property %s::%s',
-                __CLASS__,
-                $property
-            ));
-        }
+        return $this->listen('start', $callback);
+    }
 
-        return $this->{$property};
+    /**
+     * 事件监听 - 任务执行成功
+     *
+     * @param callable $callback
+     *
+     * @return \Mellivora\MultiProcess\Task
+     */
+    public function onSuccess(callable $callback)
+    {
+        return $this->listen('success', $callback);
+    }
+
+    /**
+     * 事件监听 - 任务执行出错
+     *
+     * @param callable $callback
+     *
+     * @return \Mellivora\MultiProcess\Task
+     */
+    public function onError(callable $callback)
+    {
+        return $this->listen('error', $callback);
+    }
+
+    /**
+     * 事件监听 - 任务执行完成(不论成功失败)
+     *
+     * @param callable $callback
+     *
+     * @return \Mellivora\MultiProcess\Task
+     */
+    public function onDone(callable $callback)
+    {
+        return $this->listen('done', $callback);
     }
 }

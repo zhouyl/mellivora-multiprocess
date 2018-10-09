@@ -121,20 +121,6 @@ class Pool
     }
 
     /**
-     * 尝试添加指定数量的进程，避免超过起程池限定值
-     *
-     * @param mixed $size
-     *
-     * @throws \Mellivora\MultiProcess\Pool\PoolFullException
-     */
-    protected function tryAddItem($size=1)
-    {
-        if ($this->maxsize && ($this->size() + $size) > $this->maxsize) {
-            throw new Pool\PoolFullException('Process pool is full');
-        }
-    }
-
-    /**
      * 新增一个回调任务/进程/任务到进程池中
      *
      * @param mixed $item
@@ -168,7 +154,7 @@ class Pool
     }
 
     /**
-     * 关闭pool，使其不在接受新的任务
+     * 关闭 pool，使其不再接受新的任务
      *
      * @return \Mellivora\MultiProcess\Pool
      */
@@ -178,7 +164,7 @@ class Pool
     }
 
     /**
-     * 关闭pool，结束工作进程，不再处理未完成的任务
+     * 关闭 pool，结束工作进程，不再处理未完成的任务
      *
      * @return \Mellivora\MultiProcess\Pool
      */
@@ -225,5 +211,19 @@ class Pool
     public function done()
     {
         return false;
+    }
+
+    /**
+     * 尝试添加指定数量的进程，避免超过起程池限定值
+     *
+     * @param mixed $size
+     *
+     * @throws \Mellivora\MultiProcess\Pool\PoolFullException
+     */
+    protected function tryAddItem($size=1)
+    {
+        if ($this->maxsize && ($this->size() + $size) > $this->maxsize) {
+            throw new Pool\PoolFullException('Process pool is full');
+        }
     }
 }

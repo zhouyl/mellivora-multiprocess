@@ -29,6 +29,19 @@ trait EventTrait
     }
 
     /**
+     * listen() 方法的别名，新增监听事件
+     *
+     * @param string   $event
+     * @param callable $callback
+     *
+     * @return $this
+     */
+    public function on($event, callable $callback)
+    {
+        return $this->listen($event, $callback);
+    }
+
+    /**
      * 触发事件
      *
      * @param string|string[] $event
