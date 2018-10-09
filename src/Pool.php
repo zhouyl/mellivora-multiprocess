@@ -2,8 +2,6 @@
 
 namespace Mellivora\MultiProcess;
 
-use Closure;
-
 /**
  * 进程池
  */
@@ -13,21 +11,23 @@ class Pool
      * 快速创建一个进程池
      *
      * @example
-     *      Pool::factory(function () {}, $size=10);
-     *      Pool::factory(new Task(...), $size=10);
-     *      Pool::factory(new Process(...));
+     *      Pool::create(function () {}, $size=10);
+     *      Pool::create(new Task(...), $size=10);
+     *      Pool::create(new Process(...));
      *
      * @param mixed    $item
      * @param null|int $size
      *
      * @return \Mellivora\MultiProcess\Pool
      */
-    public static function factory($item, $size=1)
+    public static function create($item, $size=1)
     {
         $pool = new self;
 
         return $pool->put($item, $size);
     }
+
+    use Traits\EventTrait;
 
     /**
      * 最大进程数量
@@ -42,13 +42,6 @@ class Pool
      * @var array
      */
     protected $items=[];
-
-    /**
-     * 已注册的事件
-     *
-     * @var array
-     */
-    protected $events = [];
 
     /**
      * 构造方法
@@ -85,31 +78,6 @@ class Pool
     }
 
     /**
-     * 新增一个任务到进程池中
-     *
-     * @param \Mellivora\MultiProcess\Task $task
-     * @param int                          $size
-     *
-     * @throws \Mellivora\MultiProcess\Pool\PoolException
-     *
-     * @return \Mellivora\MultiProcess\Pool
-     */
-    public function putTask(Task $task, $size=1)
-    {
-        if ($size < 1) {
-            throw new Pool\PoolException('The task size should be greater than 0');
-        }
-
-        $this->tryAddProcess($size);
-
-        for ($i=0; $i < $size; ++$i) {
-            $this->items[] = $task;
-        }
-
-        return $this;
-    }
-
-    /**
      * 添加一个进程到进程池中
      *
      * @param \Mellivora\MultiProcess\Process $process
@@ -118,7 +86,7 @@ class Pool
      */
     public function putProcess(Process $process)
     {
-        $this->tryAddProcess();
+        $this->tryAddItem();
 
         $this->items[] = $process;
 
@@ -128,14 +96,42 @@ class Pool
     /**
      * 新增一个回调任务到进程池中
      *
-     * @param callable $task
+     * @param callable $callback
      * @param int      $size
      *
      * @return \Mellivora\MultiProcess\Pool
      */
-    public function putCallback(callable $func, $size=1)
+    public function putCallback(callable $callback, $size=1)
     {
-        return $this->putTask(new Task($func), $size);
+        if ($size < 1) {
+            throw new Pool\PoolException('The task size should be greater than 0');
+        }
+
+        $this->tryAddItem($size);
+
+        if (! $callback instanceof Task) {
+            $callback = Task::create($callback);
+        }
+
+        for ($i=0; $i < $size; ++$i) {
+            $this->items[] = $callback;
+        }
+
+        return $this;
+    }
+
+    /**
+     * 尝试添加指定数量的进程，避免超过起程池限定值
+     *
+     * @param mixed $size
+     *
+     * @throws \Mellivora\MultiProcess\Pool\PoolFullException
+     */
+    protected function tryAddItem($size=1)
+    {
+        if ($this->maxsize && ($this->size() + $size) > $this->maxsize) {
+            throw new Pool\PoolFullException('Process pool is full');
+        }
     }
 
     /**
@@ -150,10 +146,6 @@ class Pool
      */
     public function put($item, $size=1)
     {
-        if ($item instanceof Task) {
-            return $this->putTask($item, $size);
-        }
-
         if ($item instanceof Process) {
             return $this->putProcess($item);
         }
@@ -163,63 +155,6 @@ class Pool
         }
 
         throw new Pool\PoolException('Invalid process pool item');
-    }
-
-    /**
-     * 新增事件监听
-     *
-     * @param string   $event
-     * @param callable $callback
-     *
-     * @return \Mellivora\MultiProcess\Pool
-     */
-    public function listen($event, callable $callback)
-    {
-        $this->events[$event][] = $callback;
-
-        return $this;
-    }
-
-    /**
-     * 触发事件
-     *
-     * @param string|string[] $event
-     * @param array           $args
-     *
-     * @return \Mellivora\MultiProcess\Pool
-     */
-    public function fire($event, array $args=[])
-    {
-        $events = isset($this->events[$event]) ? $this->events[$event] : [];
-
-        foreach ($events as $evt) {
-            // 允许在回调函数中使用 $this 访问连接池
-            $closure = Closure::fromCallable($evt)->bindTo($this);
-
-            call_user_func_array($closure, $args);
-        }
-
-        return $this;
-    }
-
-    /**
-     * 判断当前进程池是否有进程在运行中
-     *
-     * @return bool
-     */
-    public function running()
-    {
-        return false;
-    }
-
-    /**
-     * 判断当前进程池是否所有进程已运行完毕
-     *
-     * @return bool
-     */
-    public function done()
-    {
-        return false;
     }
 
     /**
@@ -273,16 +208,22 @@ class Pool
     }
 
     /**
-     * 尝试添加指定数量的进程，避免超过起程池限定值
+     * 判断当前进程池是否有进程在运行中
      *
-     * @param mixed $nums
-     *
-     * @throws \Mellivora\MultiProcess\Pool\PoolFullException
+     * @return bool
      */
-    protected function tryAddProcess($nums=1)
+    public function running()
     {
-        if ($this->maxsize && ($this->size() + $nums) > $this->maxsize) {
-            throw new Pool\PoolFullException('Process pool is full');
-        }
+        return false;
+    }
+
+    /**
+     * 判断当前进程池是否所有进程已运行完毕
+     *
+     * @return bool
+     */
+    public function done()
+    {
+        return false;
     }
 }

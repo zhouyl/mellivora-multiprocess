@@ -5,14 +5,28 @@ namespace Mellivora\MultiProcess;
 class Task
 {
     /**
-     * 任务运行进程
+     * 快速创建一个任务
+     *
+     * @param callable $func
+     *
+     * @return \Mellivora\MultiProcess\Task
      */
-    protected $process;
+    public static function create(callable $func)
+    {
+        return new self($func);
+    }
+
+    use Traits\EventTrait;
 
     /**
      * 任务工作内容
      */
     protected $target;
+
+    /**
+     * 任务运行进程
+     */
+    protected $process;
 
     /**
      * 任务运行结果
@@ -45,6 +59,10 @@ class Task
      */
     public function __construct(callable $target)
     {
+        if ($target instanceof self) {
+            throw new Task\TaskException('Illegal target object');
+        }
+
         $this->target = $target;
     }
 
@@ -65,38 +83,37 @@ class Task
         $this->end       = null;
 
         try {
-            // 绑定当前 task 到回调函数中
-            $closure = Closure::fromCallable($this->target)->bindTo($this);
+            $this->fire('start', $args);
+
+            // 绑定 $process 到回调函数中
+            $closure = Closure::fromCallable($this->target)->bindTo($process);
 
             // 获得运行结果
             $this->result = call_user_func_array($closure, $args);
+            $this->fire('success', [$this->result]);
         } catch (\Exception $e) {
             $this->exception = $e;
+            $this->fire('error', [$e]);
+        } finally {
+            $this->end = microtime(true);
+            $this->fire('done', [$this->result]);
+            $this->process->exit();
         }
-
-        $this->end = microtime(true);
 
         return $this;
     }
 
     /**
-     * 获取任务进程
+     * 通过魔术方法将 task 转换为 callable 来运行任务
      *
-     * @return \Mellivora\MultiProcess\Process
-     */
-    public function process()
-    {
-        return $this->process;
-    }
-
-    /**
-     * 获取任务进程 pid
+     * @param \Mellivora\MultiProcess\Process $process
+     * @param array                           $args
      *
-     * @return int
+     * @return \Mellivora\MultiProcess\Task
      */
-    public function pid()
+    public function __invoke(Process $process, array $args=[])
     {
-        return $this->process ? $this->process->pid : 0;
+        return $this->run($process, $args);
     }
 
     /**
@@ -134,29 +151,9 @@ class Task
      *
      * @return bool
      */
-    public function fail()
+    public function error()
     {
         return $this->done() && $this->exception;
-    }
-
-    /**
-     * 获取任务运行结果
-     *
-     * @return mixed
-     */
-    public function result()
-    {
-        return $this->result;
-    }
-
-    /**
-     * 获取任务执行时的异常
-     *
-     * @return \Exception
-     */
-    public function exception()
-    {
-        return $this->execption;
     }
 
     /**
@@ -170,25 +167,25 @@ class Task
     }
 
     /**
-     * 允许通过魔术方法访问部分属性
+     * 允许通过魔术方法访问 Task 属性
+     * [target|process|result|exception|start|end]
      *
-     * @param string $name
+     * @param string $property
      *
-     * @throws \Mellivora\MultiProcess\Exception
+     * @throws \Mellivora\MultiProcess\Task\TaskException
      *
      * @return mixed
      */
-    public function __get($name)
+    public function __get($property)
     {
-        $props = ['process', 'pid', 'result', 'exeception'];
-        if (! in_array($name, $props)) {
-            throw new Exception(sprintf(
+        if (! property_exists($this, $property)) {
+            throw new Task\TaskException(sprintf(
                 'Invalid property %s::%s',
                 __CLASS__,
-                $name
+                $property
             ));
         }
 
-        return $this->{$name}();
+        return $this->{$property};
     }
 }

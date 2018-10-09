@@ -7,34 +7,45 @@ class Process
     /**
      * 快速创建一个进程
      *
-     * @param mixed $item
+     * @param callable $target
      *
      * @return \Mellivora\MultiProcess\Process
      */
-    public static function factory($item)
+    public static function create(callable $target)
     {
-        $process = new self;
-
-        return $process->add($item);
+        return new self($target);
     }
+
+    use Traits\EventTrait;
+
+    protected $target;
 
     protected $process;
 
     protected $pid;
 
-    public function addCallback(callable $func)
+    public function __construct(callable $target)
     {
-    }
-
-    public function addTask(Task $task)
-    {
-    }
-
-    public function add()
-    {
+        $this->target = $target;
     }
 
     public function run()
+    {
+    }
+
+    public function running()
+    {
+    }
+
+    public function done()
+    {
+    }
+
+    public function success()
+    {
+    }
+
+    public function error()
     {
     }
 }
