@@ -39,7 +39,7 @@
             "Mellivora\\MultiProcess\\": "src"
         },
         "files": [
-            "helpers.php"
+            "src/helpers.php"
         ]
     },
     "autoload-dev": {
@@ -49,7 +49,7 @@
     },
     "config": {
         "sort-packages": true,
-        "optimize-autoloader": true,
+        "optimize-autoloader": false,
         "secure-http": false
     },
     "scripts": {

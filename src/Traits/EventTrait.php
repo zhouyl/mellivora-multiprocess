@@ -2,8 +2,6 @@
 
 namespace Mellivora\MultiProcess\Traits;
 
-use Closure;
-
 trait EventTrait
 {
     /**
@@ -38,7 +36,9 @@ trait EventTrait
      */
     public function on($event, callable $callback)
     {
-        return $this->listen($event, $callback);
+        $this->listen($event, $callback);
+
+        return $this;
     }
 
     /**
@@ -52,13 +52,10 @@ trait EventTrait
     public function fire($event, ...$args)
     {
         $events = isset($this->events[$event]) ? $this->events[$event] : [];
+        array_unshift($args, $this);
 
         foreach ($events as $evt) {
-            call_user_func_array(
-                // 允许在回调函数中使用 $this 访问连接池
-                Closure::fromCallable($evt)->bindTo($this),
-                $args
-            );
+            call_user_func_array($evt, $args);
         }
 
         return $this;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Mellivora\MultiProcess;
+namespace Mellivora\MultiProcess\Locker;
 
 class Locker
 {
